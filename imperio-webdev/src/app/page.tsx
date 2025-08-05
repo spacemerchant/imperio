@@ -1,103 +1,149 @@
-import Image from "next/image";
+// src/app/page.tsx
+"use client";
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useState } from "react";
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+const FormSchema = z.object({
+  firstName: z.string().min(2, "First name is required"),
+  lastName: z.string().min(2, "Last name is required"),
+  email: z.string().email("Invalid email"),
+  goals: z.string().optional(),
+  timeline: z.string().optional(),
+  location: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof FormSchema>;
+
+export default function Page() {
+  const [showOptional, setShowOptional] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(FormSchema),
+  });
+
+  const onSubmit = async (data: FormValues) => {
+    try {
+      await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      setSubmitted(true);
+    } catch (err) {
+      console.error("Submission error:", err);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 text-center">
+        <div className="bg-green-100 text-green-800 p-6 rounded-xl shadow">
+          <h2 className="text-xl font-semibold">Thanks for submitting!</h2>
+          <p className="text-sm mt-2">We'll be in touch shortly.</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-white text-gray-800">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full max-w-lg p-6 border rounded-2xl shadow space-y-4"
+      >
+        <div className="flex items-center justify-center gap-4">
+          <div className="w-1/2">
+            <label className="block font-medium mb-1">First Name</label>
+            <input
+              {...register("firstName")}
+              className="w-full border p-2 rounded"
+              placeholder="James"
+            />
+            {errors.firstName && (
+              <p className="text-sm text-red-500">{errors.firstName.message}</p>
+            )}
+          </div>
+
+          <div className="w-1/2">
+            <label className="block font-medium mb-1">Last Name</label>
+            <input
+              {...register("lastName")}
+              className="w-full border p-2 rounded"
+              placeholder="Smith"
+            />
+            {errors.lastName && (
+              <p className="text-sm text-red-500">{errors.lastName.message}</p>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label className="block font-medium mb-1">Email</label>
+          <input
+            type="email"
+            {...register("email")}
+            className="w-full border p-2 rounded"
+            placeholder="jane@example.com"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+        </div>
+
+        <button
+          type="button"
+          className="text-sm text-blue-600 hover:underline mx-4"
+          onClick={() => setShowOptional(!showOptional)}
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          {showOptional ? "Hide additional fields" : "Add more information"}
+        </button>
+
+        {showOptional && (
+          <>
+            <div>
+              <label className="block font-medium mb-1">Financial Goals</label>
+              <textarea
+                {...register("goals")}
+                className="w-full border p-2 rounded"
+                rows={3}
+                placeholder="Tell us what you want to achieve"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-1">Investment Timeline</label>
+              <input
+                {...register("timeline")}
+                className="w-full border p-2 rounded"
+                placeholder="e.g., 5-10 years"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-1">Location</label>
+              <input
+                {...register("location")}
+                className="w-full border p-2 rounded"
+                placeholder="City, State"
+              />
+            </div>
+          </>
+        )}
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {isSubmitting ? "Submitting..." : "Submit"}
+        </button>
+      </form>
     </div>
   );
 }
