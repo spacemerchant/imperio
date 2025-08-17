@@ -13,6 +13,10 @@ const FormSchema = z.object({
   goals: z.string().optional(),
   timeline: z.string().optional(),
   location: z.string().optional(),
+  honey: z.string().optional(), // Honeypot field
+}).refine((data) => !data.honey, {
+  message: "Spam detected!",
+  path: ["honey"],
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -61,7 +65,7 @@ export default function Page() {
       >
         <div className="flex items-center justify-center gap-4">
           <div className="w-1/2">
-            <label className="block font-medium mb-1">First Name</label>
+            <label className="block font-bold mb-1">First Name</label>
             <input
               {...register("firstName")}
               className="w-full border p-2 rounded"
@@ -73,7 +77,7 @@ export default function Page() {
           </div>
 
           <div className="w-1/2">
-            <label className="block font-medium mb-1">Last Name</label>
+            <label className="block font-bold mb-1">Last Name</label>
             <input
               {...register("lastName")}
               className="w-full border p-2 rounded"
@@ -86,26 +90,52 @@ export default function Page() {
         </div>
 
         <div>
-          <label className="block font-medium mb-1">Email</label>
+          <label className="block font-bold mb-1">Email</label>
           <input
             type="email"
             {...register("email")}
             className="w-full border p-2 rounded"
-            placeholder="jane@example.com"
+            placeholder="jamessmith@example.com"
           />
           {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
         </div>
 
+        <div className="absolute left-[-9999px]">
+          <label htmlFor="honey">Don't fill this out</label>
+          <input id="honey" type="text" {...register("honey")} />
+        </div>
+
         <button
           type="button"
-          className="text-sm text-blue-600 hover:underline mx-4"
+          className="flex items-center gap-2 text-imperio-gold hover:underline font-bold transition-transform duration-200 hover:scale-105"
           onClick={() => setShowOptional(!showOptional)}
         >
-          {showOptional ? "Hide additional fields" : "Add more information"}
+          {showOptional ? (
+            "Hide additional fields"
+          ) : (
+            <>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Add more information
+            </>
+          )}
         </button>
 
-        {showOptional && (
-          <>
+        <div
+          className={`
+            grid transition-[max-height,opacity] duration-750 ease-in-out overflow-hidden
+            ${showOptional ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}
+          `}
+        >
+          <div className="space-y-4">
             <div>
               <label className="block font-medium mb-1">Financial Goals</label>
               <textarea
@@ -133,13 +163,13 @@ export default function Page() {
                 placeholder="City, State"
               />
             </div>
-          </>
-        )}
+          </div>
+        </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-imperio-blue text-imperio-gold px-4 py-2 rounded hover:bg-imperio-gold hover:text-imperio-blue"
         >
           {isSubmitting ? "Submitting..." : "Submit"}
         </button>
